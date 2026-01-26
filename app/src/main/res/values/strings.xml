@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Comnet Notify</string>
+    <string name="home_tab_label">Home</string>
+    <string name="profile_tab_label">Profile</string>
+
+    <string name="package_title">အင်တာနက်</string>
+    <string name="empty_package">မရှိသေးပါ</string>
+    <string name="package_activate_button_label">ကုဒ်ထည့်မယ်</string>
+</resources>
