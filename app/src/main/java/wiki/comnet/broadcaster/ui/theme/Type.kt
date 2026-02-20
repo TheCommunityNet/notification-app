@@ -21,15 +21,15 @@ val MyanmarFont = FontFamily(
 )
 
 var InterFont = FontFamily(
-    Font(R.font.inter_variable, FontWeight.Black),
-    Font(R.font.inter_variable, FontWeight.Bold),
-    Font(R.font.inter_variable, FontWeight.ExtraBold),
-    Font(R.font.inter_variable, FontWeight.ExtraLight),
-    Font(R.font.inter_variable, FontWeight.Light),
-    Font(R.font.inter_variable, FontWeight.Medium),
-    Font(R.font.inter_variable, FontWeight.Normal),
-    Font(R.font.inter_variable, FontWeight.SemiBold),
-    Font(R.font.inter_variable, FontWeight.Thin)
+    Font(R.font.inter_black, FontWeight.Black),
+    Font(R.font.inter_bold, FontWeight.Bold),
+    Font(R.font.inter_extra_bold, FontWeight.ExtraBold),
+    Font(R.font.inter_regular, FontWeight.ExtraLight),
+    Font(R.font.inter_regular, FontWeight.Light),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_semi_bold, FontWeight.SemiBold),
+    Font(R.font.inter_regular, FontWeight.Thin)
 )
 
 // Set of Material typography styles to start with
