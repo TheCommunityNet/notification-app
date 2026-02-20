@@ -32,17 +32,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
+import wiki.comnet.broadcaster.app.presentation.component.ThemeText
 import wiki.comnet.broadcaster.core.common.Result
 import wiki.comnet.broadcaster.features.auth.domain.model.AuthState
 import wiki.comnet.broadcaster.features.auth.presentation.AuthViewModel
 import wiki.comnet.broadcaster.ui.theme.BorderColor
+import wiki.comnet.broadcaster.ui.theme.MyanmarFont
 import wiki.comnet.broadcaster.ui.theme.PrimaryColor
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -117,12 +121,10 @@ fun HomeScreen(
                         shape = RoundedCornerShape(12.dp),
                     )
                     .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
+                ThemeText(
                     text = (authState as Result.Error).exception.message ?: "Unknown Error",
                     color = Color.White,
-                    fontSize = 14.sp,
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -169,17 +171,17 @@ fun ReferCard(
             )
             .padding(16.dp),
     ) {
-        Text(
+        ThemeText(
             text = "Have a refer code?",
             fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = referCode,
             onValueChange = { referCode = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Enter refer code") },
+            placeholder = { ThemeText("Enter refer code") },
             singleLine = true,
             enabled = !isLoading,
             shape = RoundedCornerShape(8.dp),
@@ -199,11 +201,11 @@ fun ReferCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(text = if (isLoading) "Submitting..." else "Submit")
+            ThemeText(text = if (isLoading) "Submitting..." else "Submit")
         }
         if (referState is ReferState.Error) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
+            ThemeText(
                 text = referState.message,
                 color = Color.Red,
                 fontSize = 12.sp,
@@ -245,7 +247,7 @@ fun UserProfileCard(
                 .weight(1f)
                 .height(IntrinsicSize.Min),
         ) {
-            Text(
+            ThemeText(
                 text = when (authState) {
                     is Result.Success -> {
                         val data = authState.data
@@ -263,7 +265,7 @@ fun UserProfileCard(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
             )
-            Text(
+            ThemeText(
                 text = deviceId,
                 style = TextStyle(
                     fontSize = 12.sp,
@@ -281,7 +283,7 @@ fun UserProfileCard(
                 onClick = onLoginClick,
                 enabled = !authState.isLoading
             ) {
-                Text(text = "Login")
+                ThemeText(text = "Login")
             }
         }
     }
@@ -310,6 +312,6 @@ fun WifiConnectCard() {
                 vertical = 8.dp,
             )
     ) {
-        Text("Please connect to community net wifi")
+        ThemeText("Please connect to community net wifi")
     }
 }

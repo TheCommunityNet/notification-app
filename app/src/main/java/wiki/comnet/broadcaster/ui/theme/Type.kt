@@ -20,15 +20,27 @@ val MyanmarFont = FontFamily(
     Font(R.font.noto_sans_myanmar_thin, FontWeight.Thin)
 )
 
+var InterFont = FontFamily(
+    Font(R.font.inter_variable, FontWeight.Black),
+    Font(R.font.inter_variable, FontWeight.Bold),
+    Font(R.font.inter_variable, FontWeight.ExtraBold),
+    Font(R.font.inter_variable, FontWeight.ExtraLight),
+    Font(R.font.inter_variable, FontWeight.Light),
+    Font(R.font.inter_variable, FontWeight.Medium),
+    Font(R.font.inter_variable, FontWeight.Normal),
+    Font(R.font.inter_variable, FontWeight.SemiBold),
+    Font(R.font.inter_variable, FontWeight.Thin)
+)
+
 // Set of Material typography styles to start with
 val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = MyanmarFont,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
+//    bodyLarge = TextStyle(
+//        fontFamily = MyanmarFont,
+//        fontWeight = FontWeight.Normal,
+//        fontSize = 16.sp,
+//        lineHeight = 24.sp,
+//        letterSpacing = 0.5.sp
+//    )
     /* Other default text styles to override
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
