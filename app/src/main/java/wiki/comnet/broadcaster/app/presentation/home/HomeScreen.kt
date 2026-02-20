@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
@@ -203,6 +204,9 @@ fun ReferCard(
             singleLine = true,
             enabled = !isLoading,
             shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors().copy(
+                unfocusedIndicatorColor = Color(0xFFD1D5DC)
+            )
         )
         Spacer(modifier = Modifier.height(12.dp))
         Button(
