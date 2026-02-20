@@ -6,23 +6,19 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
-import net.openid.appauth.GrantTypeValues
 import net.openid.appauth.ResponseTypeValues
-import net.openid.appauth.TokenRequest
+import retrofit2.HttpException
 import wiki.comnet.broadcaster.core.common.Result
 import wiki.comnet.broadcaster.core.common.startRepeatingTask
 import wiki.comnet.broadcaster.features.auth.constant.AuthConfig
@@ -48,7 +44,6 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     private val _authService = AuthorizationService(context)
-    private var _authorizationRequest: AuthorizationRequest? = null
 
     private val _authState = MutableStateFlow<Result<AuthState>>(Result.Initial)
     override val authState: StateFlow<Result<AuthState>> = _authState.asStateFlow()
@@ -75,8 +70,41 @@ class AuthRepositoryImpl @Inject constructor(
             )
             Log.d(TAG, "Auth state loaded successfully")
         } catch (e: Exception) {
+            Log.d(TAG, "Access token invalid, attempting refresh", e)
+            tryRefreshOnLoad(oldAuthToken.refreshToken)
+        }
+    }
+
+    private suspend fun tryRefreshOnLoad(refreshToken: String) {
+        try {
+            val response = keycloakApi.refreshToken(
+                clientId = AuthConfig.CLIENT_ID,
+                refreshToken = refreshToken,
+            )
+
+            val newAuthToken = AuthToken(
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+                expiresIn = System.currentTimeMillis() + response.expiresIn * 1000,
+            )
+
+            val userInfo = keycloakApi.getUserInfo("Bearer ${newAuthToken.accessToken}")
+            val profile = UserProfile(
+                sub = userInfo.sub,
+                name = userInfo.name,
+                email = userInfo.email,
+                preferredUsername = userInfo.preferredUsername
+            )
+
+            _authState.value = Result.Success(
+                AuthState(token = newAuthToken, profile = profile)
+            )
+            sharePreferenceRepository.setAuthToken(newAuthToken)
+            Log.d(TAG, "Auth state loaded after token refresh")
+        } catch (e: Exception) {
             _authState.value = Result.Initial
-            Log.e(TAG, "Failed to load auth state", e)
+            sharePreferenceRepository.clearAuthToken()
+            Log.e(TAG, "Failed to refresh token on load", e)
         }
     }
 
@@ -88,7 +116,7 @@ class AuthRepositoryImpl @Inject constructor(
             AuthConfig.TOKEN_ENDPOINT.toUri(),
         )
 
-        _authorizationRequest = AuthorizationRequest.Builder(
+        val authorizationRequest = AuthorizationRequest.Builder(
             serviceConfig,
             AuthConfig.CLIENT_ID,
             ResponseTypeValues.CODE,
@@ -97,7 +125,7 @@ class AuthRepositoryImpl @Inject constructor(
             .setScope(AuthConfig.SCOPE)
             .build()
 
-        val authIntent = _authService.getAuthorizationRequestIntent(_authorizationRequest!!)
+        val authIntent = _authService.getAuthorizationRequestIntent(authorizationRequest)
         launcher.launch(authIntent)
         Log.d(TAG, "Login initiated")
     }
@@ -134,29 +162,16 @@ class AuthRepositoryImpl @Inject constructor(
             return
         }
 
-        val serviceConfig = AuthorizationServiceConfiguration(
-            AuthConfig.AUTHORIZATION_ENDPOINT.toUri(),
-            AuthConfig.TOKEN_ENDPOINT.toUri(),
-        )
-
-        val refreshRequest = TokenRequest.Builder(serviceConfig, AuthConfig.CLIENT_ID)
-            .setGrantType(GrantTypeValues.REFRESH_TOKEN)
-            .setRefreshToken(currentRefreshToken)
-            .build()
-
-        _authService.performTokenRequest(refreshRequest) { tokenResponse, exception ->
-            if (exception != null || tokenResponse == null) {
-                Log.e(TAG, "Token refresh failed", exception)
-                CoroutineScope(Dispatchers.IO).launch {
-                    logout()
-                }
-                return@performTokenRequest
-            }
+        try {
+            val response = keycloakApi.refreshToken(
+                clientId = AuthConfig.CLIENT_ID,
+                refreshToken = currentRefreshToken,
+            )
 
             val authToken = AuthToken(
-                accessToken = tokenResponse.accessToken!!,
-                refreshToken = tokenResponse.refreshToken!!,
-                expiresIn = tokenResponse.accessTokenExpirationTime!!,
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+                expiresIn = System.currentTimeMillis() + response.expiresIn * 1000,
             )
 
             _authState.value = Result.Success(
@@ -165,7 +180,13 @@ class AuthRepositoryImpl @Inject constructor(
                     profile = currentAuthState.profile
                 )
             )
+            sharePreferenceRepository.setAuthToken(authToken)
             Log.d(TAG, "Token refreshed successfully")
+        } catch (e: HttpException) {
+            Log.e(TAG, "Token refresh failed with HTTP ${e.code()}", e)
+            logout()
+        } catch (e: Exception) {
+            Log.e(TAG, "Token refresh failed (transient)", e)
         }
     }
 
@@ -220,60 +241,45 @@ class AuthRepositoryImpl @Inject constructor(
         _authService.dispose()
     }
 
-    private fun exchangeCodeForToken(response: AuthorizationResponse) {
-        val tokenRequest = response.createTokenExchangeRequest()
+    private suspend fun exchangeCodeForToken(response: AuthorizationResponse) {
+        val code = response.authorizationCode
+        val codeVerifier = response.request.codeVerifier
 
-        _authService.performTokenRequest(tokenRequest) { tokenResponse, exception ->
-            if (exception != null) {
-                val error = Exception(exception.message ?: "Token exchange failed")
-                _authState.value = Result.Error(error)
-                Log.e(TAG, "Token exchange error", error)
-                return@performTokenRequest
-            }
+        if (code == null || codeVerifier == null) {
+            _authState.value = Result.Error(Exception("Missing authorization code or code verifier"))
+            return
+        }
 
-            if (
-                tokenResponse == null
-                || tokenResponse.accessToken == null
-                || tokenResponse.refreshToken == null
-                || tokenResponse.accessTokenExpirationTime == null
-            ) {
-                val error = Exception("Token exchange failed - invalid response")
-                _authState.value = Result.Error(error)
-                Log.e(TAG, "Token exchange failed", error)
-                return@performTokenRequest
-            }
-
-            val authToken = AuthToken(
-                accessToken = tokenResponse.accessToken!!,
-                refreshToken = tokenResponse.refreshToken!!,
-                expiresIn = tokenResponse.accessTokenExpirationTime!!,
+        try {
+            val tokenResponse = keycloakApi.exchangeCode(
+                clientId = AuthConfig.CLIENT_ID,
+                code = code,
+                redirectUri = AuthConfig.REDIRECT_URI,
+                codeVerifier = codeVerifier,
             )
 
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val userInfo = keycloakApi.getUserInfo("Bearer ${authToken.accessToken}")
+            val authToken = AuthToken(
+                accessToken = tokenResponse.accessToken,
+                refreshToken = tokenResponse.refreshToken,
+                expiresIn = System.currentTimeMillis() + tokenResponse.expiresIn * 1000,
+            )
 
-                    val profile = UserProfile(
-                        sub = userInfo.sub,
-                        name = userInfo.name,
-                        email = userInfo.email,
-                        preferredUsername = userInfo.preferredUsername
-                    )
+            val userInfo = keycloakApi.getUserInfo("Bearer ${authToken.accessToken}")
+            val profile = UserProfile(
+                sub = userInfo.sub,
+                name = userInfo.name,
+                email = userInfo.email,
+                preferredUsername = userInfo.preferredUsername
+            )
 
-                    _authState.value = Result.Success(
-                        AuthState(
-                            token = authToken,
-                            profile = profile
-                        )
-                    )
-
-                    sharePreferenceRepository.setAuthToken(authToken)
-                    Log.d(TAG, "Token exchange completed successfully")
-                } catch (e: Exception) {
-                    _authState.value = Result.Error(e)
-                    Log.e(TAG, "Failed to get user info after token exchange", e)
-                }
-            }
+            _authState.value = Result.Success(
+                AuthState(token = authToken, profile = profile)
+            )
+            sharePreferenceRepository.setAuthToken(authToken)
+            Log.d(TAG, "Token exchange completed successfully")
+        } catch (e: Exception) {
+            _authState.value = Result.Error(e)
+            Log.e(TAG, "Token exchange failed", e)
         }
     }
 }
