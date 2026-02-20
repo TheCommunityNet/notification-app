@@ -67,7 +67,7 @@ class LogRepositoryImpl @Inject constructor(
                 )
 
                 logApi.syncLogs(request)
-                logEntryDao.markAsSynced(unsyncedLogs.map { it.id })
+                logEntryDao.deleteByIds(unsyncedLogs.map { it.id })
 
                 if (unsyncedLogs.size < SYNC_BATCH_SIZE) {
                     hasMore = false

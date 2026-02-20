@@ -19,6 +19,9 @@ interface LogEntryDao {
     @Query("UPDATE log_entries SET is_synced = 1 WHERE id IN (:ids)")
     suspend fun markAsSynced(ids: List<Long>)
 
+    @Query("DELETE FROM log_entries WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
+
     @Query("DELETE FROM log_entries WHERE is_synced = 1 AND created_at < :timestamp")
     suspend fun deleteSyncedLogsBefore(timestamp: Long)
 
