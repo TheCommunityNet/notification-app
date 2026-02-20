@@ -3,7 +3,7 @@ package wiki.comnet.broadcaster.app.worker
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.core.content.ContextCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -20,12 +20,12 @@ class NotificationBroadcastWatchdogWorker(private val context: Context, params: 
     override fun doWork(): Result {
         val id = this.id
         if (context.applicationContext !is Application) {
-            Log.d(TAG, "ServiceStartWorker: Failed, no application found (work ID: ${id})")
+            ComNetLog.d(TAG, "ServiceStartWorker: Failed, no application found (work ID: ${id})")
             return Result.failure()
         }
         val serviceState = NotificationBroadcastService.readServiceState(applicationContext)
 
-        Log.d(
+        ComNetLog.d(
             TAG,
             "ServiceStartWorker: Starting foreground service with state $serviceState (work ID: ${id})"
         )

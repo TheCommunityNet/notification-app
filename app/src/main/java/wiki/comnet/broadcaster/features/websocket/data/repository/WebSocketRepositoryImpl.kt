@@ -1,7 +1,7 @@
 package wiki.comnet.broadcaster.features.websocket.data.repository
 
 import android.content.Context
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -115,13 +115,13 @@ class WebSocketRepositoryImpl @Inject constructor(
                 suspendCancellableCoroutine { continuation ->
                     channel.join()
                         .receive("ok") {
-                            Log.d(TAG, "WebSocket channel joined successfully")
+                            ComNetLog.d(TAG, "WebSocket channel joined successfully")
                             if (isActive) {
                                 continuation.resume(Unit)
                             }
                         }
                         .receive("error") { error ->
-                            Log.e(TAG, "WebSocket channel join error: $error")
+                            ComNetLog.e(TAG, "WebSocket channel join error: $error")
                             continuation.resumeWithException(Exception("Failed to join channel: $error"))
                         }
                 }
@@ -129,7 +129,7 @@ class WebSocketRepositoryImpl @Inject constructor(
                 _channel = channel
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to connect WebSocket", e)
+            ComNetLog.e(TAG, "Failed to connect WebSocket", e)
             _connectionState.value = false
             throw e
         }
@@ -142,10 +142,10 @@ class WebSocketRepositoryImpl @Inject constructor(
                 _channel = null
                 _socket.disconnect()
                 _connectionState.value = false
-                Log.d(TAG, "WebSocket disconnected")
+                ComNetLog.d(TAG, "WebSocket disconnected")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error during WebSocket disconnect", e)
+            ComNetLog.e(TAG, "Error during WebSocket disconnect", e)
         }
     }
 
@@ -153,7 +153,7 @@ class WebSocketRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             _userId = userId
             _channel?.push("connect", mapOf("user_id" to userId))
-            Log.d(TAG, "User ID set: $userId")
+            ComNetLog.d(TAG, "User ID set: $userId")
         }
     }
 
@@ -164,7 +164,7 @@ class WebSocketRepositoryImpl @Inject constructor(
                 Result.success(Unit)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to send message", e)
+            ComNetLog.e(TAG, "Failed to send message", e)
             Result.failure(e)
         }
     }
@@ -224,9 +224,9 @@ class WebSocketRepositoryImpl @Inject constructor(
             )
 
             _messages.emit(webSocketMessage)
-            Log.d(TAG, "Message received: ${webSocketMessage.category}")
+            ComNetLog.d(TAG, "Message received: ${webSocketMessage.category}")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to handle incoming message", e)
+            ComNetLog.e(TAG, "Failed to handle incoming message", e)
         }
     }
 

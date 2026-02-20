@@ -2,7 +2,7 @@ package wiki.comnet.broadcaster.features.ble.data.repository
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -115,17 +115,17 @@ class BleConnectionTrackerRepositoryImpl @Inject constructor(
             // Double-check inside synchronized block
             val currentAttempt = pendingConnections[deviceAddress]
             if (currentAttempt != null && !currentAttempt.isExpired() && !currentAttempt.shouldRetry()) {
-                Log.d(TAG, "Tracker: Connection attempt already in progress for $deviceAddress")
+                ComNetLog.d(TAG, "Tracker: Connection attempt already in progress for $deviceAddress")
                 return false
             }
             if (currentAttempt != null) {
-                Log.d(TAG, "Tracker: current attempt: $currentAttempt")
+                ComNetLog.d(TAG, "Tracker: current attempt: $currentAttempt")
             }
 
             // Update connection attempt atomically
             val attempts = (currentAttempt?.attempts ?: 0) + 1
             pendingConnections[deviceAddress] = BleConnectionAttempt(attempts)
-            Log.d(TAG, "Tracker: Added pending connection for $deviceAddress (attempts: $attempts)")
+            ComNetLog.d(TAG, "Tracker: Added pending connection for $deviceAddress (attempts: $attempts)")
             return true
         }
     }
@@ -166,7 +166,7 @@ class BleConnectionTrackerRepositoryImpl @Inject constructor(
                 try {
                     deviceConn.gatt?.close()
                 } catch (e: Exception) {
-                    Log.w(TAG, "Error closing GATT during cleanup: ${e.message}")
+                    ComNetLog.w(TAG, "Error closing GATT during cleanup: ${e.message}")
                 }
             }
         }
@@ -199,20 +199,20 @@ class BleConnectionTrackerRepositoryImpl @Inject constructor(
 
                     // Log cleanup if any
                     if (expiredConnections.isNotEmpty()) {
-                        Log.d(
+                        ComNetLog.d(
                             TAG,
                             "Cleaned up ${expiredConnections.size} expired connection attempts"
                         )
                     }
 
                     // Log current state
-                    Log.d(
+                    ComNetLog.d(
                         TAG,
                         "Periodic cleanup: ${connectedDevices.size} connections, ${pendingConnections.size} pending"
                     )
 
                 } catch (e: Exception) {
-                    Log.w(TAG, "Error in periodic cleanup: ${e.message}")
+                    ComNetLog.w(TAG, "Error in periodic cleanup: ${e.message}")
                 }
             }
         }

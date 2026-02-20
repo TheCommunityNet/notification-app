@@ -2,11 +2,11 @@ package wiki.comnet.broadcaster.app.up
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 
 class Distributor(val context: Context) {
     fun sendMessage(app: String, connectorToken: String, message: ByteArray) {
-        Log.d(TAG, "Sending MESSAGE to $app (token=$connectorToken): ${message.size} bytes")
+        ComNetLog.d(TAG, "Sending MESSAGE to $app (token=$connectorToken): ${message.size} bytes")
         val broadcastIntent = Intent()
         broadcastIntent.`package` = app
         broadcastIntent.action = ACTION_MESSAGE
@@ -17,7 +17,7 @@ class Distributor(val context: Context) {
     }
 
     fun sendEndpoint(app: String, connectorToken: String, endpoint: String) {
-        Log.d(TAG, "Sending NEW_ENDPOINT to $app (token=$connectorToken): $endpoint")
+        ComNetLog.d(TAG, "Sending NEW_ENDPOINT to $app (token=$connectorToken): $endpoint")
         val broadcastIntent = Intent()
         broadcastIntent.`package` = app
         broadcastIntent.action = ACTION_NEW_ENDPOINT
@@ -27,7 +27,7 @@ class Distributor(val context: Context) {
     }
 
     fun sendUnregistered(app: String, connectorToken: String) {
-        Log.d(TAG, "Sending UNREGISTERED to $app (token=$connectorToken)")
+        ComNetLog.d(TAG, "Sending UNREGISTERED to $app (token=$connectorToken)")
         val broadcastIntent = Intent()
         broadcastIntent.`package` = app
         broadcastIntent.action = ACTION_UNREGISTERED
@@ -36,7 +36,7 @@ class Distributor(val context: Context) {
     }
 
     fun sendRegistrationFailed(app: String, connectorToken: String, message: String?) {
-        Log.d(TAG, "Sending REGISTRATION_FAILED to $app (token=$connectorToken)")
+        ComNetLog.d(TAG, "Sending REGISTRATION_FAILED to $app (token=$connectorToken)")
         val broadcastIntent = Intent()
         broadcastIntent.`package` = app
         broadcastIntent.action = ACTION_REGISTRATION_FAILED

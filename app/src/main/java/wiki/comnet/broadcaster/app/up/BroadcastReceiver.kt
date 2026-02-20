@@ -3,7 +3,7 @@ package wiki.comnet.broadcaster.app.up
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -39,10 +39,10 @@ class BroadcastReceiver : android.content.BroadcastReceiver() {
 
         val distributor = Distributor(app)
 
-        Log.d(TAG, "REGISTER received for app $appId (connectorToken=$connectorToken)")
+        ComNetLog.d(TAG, "REGISTER received for app $appId (connectorToken=$connectorToken)")
 
         if (appId.isBlank()) {
-            Log.w(TAG, "Refusing registration: Empty application")
+            ComNetLog.w(TAG, "Refusing registration: Empty application")
             distributor.sendRegistrationFailed(appId, connectorToken, "Empty application string")
             return
         }
@@ -54,7 +54,7 @@ class BroadcastReceiver : android.content.BroadcastReceiver() {
                         appId,
                         connectorToken,
                     )
-                    Log.d(TAG, "url $url")
+                    ComNetLog.d(TAG, "url $url")
                     distributor.sendEndpoint(appId, connectorToken, url)
                 } catch (e: Exception) {
                     distributor.sendRegistrationFailed(appId, connectorToken, e.message)

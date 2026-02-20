@@ -11,7 +11,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.core.content.edit
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
@@ -120,7 +120,7 @@ class NotificationBroadcastService() : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        Log.d(TAG, "Notification broadcast service has been created")
+        ComNetLog.d(TAG, "Notification broadcast service has been created")
 
         notificationRepository.start()
 
@@ -131,19 +131,19 @@ class NotificationBroadcastService() : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand executed with startId: $startId")
+        ComNetLog.d(TAG, "onStartCommand executed with startId: $startId")
 
         if (intent != null) {
             intent.action?.let { action ->
-                Log.d(TAG, "using an intent with action ${intent.action}")
+                ComNetLog.d(TAG, "using an intent with action ${intent.action}")
                 when (action) {
                     ServiceAction.START.name -> startServices()
                     ServiceAction.STOP.name -> stopServices()
-                    else -> Log.e(TAG, "Unknown action: $action")
+                    else -> ComNetLog.e(TAG, "Unknown action: $action")
                 }
             }
         } else {
-            Log.d(TAG, "with a null intent. It has been probably restarted by the system.")
+            ComNetLog.d(TAG, "with a null intent. It has been probably restarted by the system.")
         }
 
         val notificationId = notificationRepository.getWebsocketNotificationId()
@@ -167,14 +167,14 @@ class NotificationBroadcastService() : Service() {
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "Notification broadcast service has been destroyed")
+        ComNetLog.d(TAG, "Notification broadcast service has been destroyed")
         stopServices()
         sendBroadcast(Intent(this, AutoRestartReceiver::class.java)) // Restart it if necessary!
         super.onDestroy()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        Log.d(TAG, "onTaskRemoved: called")
+        ComNetLog.d(TAG, "onTaskRemoved: called")
         val restartIntent = Intent(applicationContext, NotificationBroadcastService::class.java)
         val pendingIntent = PendingIntent.getService(
             applicationContext, 1, restartIntent,
@@ -205,7 +205,7 @@ class NotificationBroadcastService() : Service() {
         if (isServiceStarted) return
         isServiceStarted = true
 
-        Log.d(TAG, "Starting the foreground service task")
+        ComNetLog.d(TAG, "Starting the foreground service task")
 
         saveServiceState(
             this, ServiceState.STARTED
@@ -222,7 +222,7 @@ class NotificationBroadcastService() : Service() {
     }
 
     private fun stopServices() {
-        Log.d(TAG, "Stopping the foreground service")
+        ComNetLog.d(TAG, "Stopping the foreground service")
 
         try {
             wakeLock?.let {
@@ -526,14 +526,14 @@ class NotificationBroadcastService() : Service() {
 
     class AutoRestartReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.d(TAG, "AutoRestartReceiver: onReceive called")
+            ComNetLog.d(TAG, "AutoRestartReceiver: onReceive called")
             RestartServiceWorker.refresh(context)
         }
     }
 
     class BootStartReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
-            Log.d(TAG, "BootStartReceiver: onReceive called, action=${intent?.action}")
+            ComNetLog.d(TAG, "BootStartReceiver: onReceive called, action=${intent?.action}")
             if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
                 saveServiceState(
                     context, ServiceState.STOPPED

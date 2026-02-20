@@ -1,6 +1,6 @@
 package wiki.comnet.broadcaster.features.ble.data.protocol
 
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import wiki.comnet.broadcaster.features.ble.domain.model.BlePacket
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -95,7 +95,7 @@ object BinaryProtocol {
                 payload = payload
             )
         } catch (e: Exception) {
-            Log.e("BinaryProtocol", "Error decoding packet: ${e.message}")
+            ComNetLog.e("BinaryProtocol", "Error decoding packet: ${e.message}")
             return null
         }
     }

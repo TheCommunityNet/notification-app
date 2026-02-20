@@ -9,9 +9,15 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
 import wiki.comnet.broadcaster.app.worker.CleanUpNotificationTrackingWorker
+import wiki.comnet.broadcaster.app.worker.LogSyncWorker
 import wiki.comnet.broadcaster.app.worker.NotificationBroadcastWatchdogWorker
 import wiki.comnet.broadcaster.app.worker.PollWorker
+import wiki.comnet.broadcaster.core.di.ServiceScope
+import wiki.comnet.broadcaster.features.logging.ComNetLog
+import wiki.comnet.broadcaster.features.logging.data.network.NetworkConnectivityObserver
+import wiki.comnet.broadcaster.features.logging.domain.repository.LogRepository
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -22,6 +28,16 @@ class CommunityNetApp() : Application(),
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    @Inject
+    lateinit var logRepository: LogRepository
+
+    @Inject
+    @ServiceScope
+    lateinit var serviceScope: CoroutineScope
+
+    @Inject
+    lateinit var networkConnectivityObserver: NetworkConnectivityObserver
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -29,6 +45,9 @@ class CommunityNetApp() : Application(),
 
     override fun onCreate() {
         super.onCreate()
+
+        ComNetLog.init(logRepository, serviceScope)
+        networkConnectivityObserver.start()
 
         val pollRequest = PeriodicWorkRequestBuilder<PollWorker>(
             15,
@@ -66,6 +85,21 @@ class CommunityNetApp() : Application(),
             "CleanUpNotificationTrackingWorker",
             ExistingPeriodicWorkPolicy.KEEP,
             cleanUpNotificationRequest
+        )
+
+        val logSyncRequest = PeriodicWorkRequestBuilder<LogSyncWorker>(
+            15,
+            TimeUnit.MINUTES,
+        ).setConstraints(
+            Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+        ).build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            LogSyncWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            logSyncRequest,
         )
     }
 }

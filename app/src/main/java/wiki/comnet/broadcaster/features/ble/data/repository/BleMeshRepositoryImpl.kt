@@ -1,6 +1,6 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ class BleMeshRepositoryImpl @Inject constructor(
 
     override fun startServices() {
         if (isActive) {
-            Log.w(TAG, "Mesh service already active, ignoring duplicate start request")
+            ComNetLog.w(TAG, "Mesh service already active, ignoring duplicate start request")
             return
         }
 
@@ -34,17 +34,17 @@ class BleMeshRepositoryImpl @Inject constructor(
             isActive = true
 
         } else {
-            Log.e(TAG, "Failed to start Bluetooth services")
+            ComNetLog.e(TAG, "Failed to start Bluetooth services")
         }
     }
 
     override fun stopServices() {
         if (!isActive) {
-            Log.w(TAG, "Mesh service not active, ignoring stop request")
+            ComNetLog.w(TAG, "Mesh service not active, ignoring stop request")
             return
         }
 
-        Log.i(TAG, "Stopping Bluetooth mesh service")
+        ComNetLog.i(TAG, "Stopping Bluetooth mesh service")
 
         isActive = false
 

@@ -1,7 +1,7 @@
 package wiki.comnet.broadcaster.app.worker
 
 import android.content.Context
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -57,7 +57,7 @@ class PollWorker @AssistedInject constructor(
                 }
             Result.success()
         } catch (e: Exception) {
-            Log.d(TAG, e.message ?: "fail to back fill notification")
+            ComNetLog.d(TAG, e.message ?: "fail to back fill notification")
             Result.retry()
         }
     }

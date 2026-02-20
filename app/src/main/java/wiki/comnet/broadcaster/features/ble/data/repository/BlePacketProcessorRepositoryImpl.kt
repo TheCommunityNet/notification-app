@@ -1,6 +1,6 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -34,12 +34,12 @@ class BlePacketProcessorRepositoryImpl @Inject constructor(
     ) {
         try {
             for (packet in channel) {
-                Log.d(TAG, "📦 Processing packet type ${packet.type} (serialized)")
+                ComNetLog.d(TAG, "📦 Processing packet type ${packet.type} (serialized)")
                 handleReceivedPacket(packet)
-                Log.d(TAG, "Completed packet type ${packet.type} ")
+                ComNetLog.d(TAG, "Completed packet type ${packet.type} ")
             }
         } finally {
-            Log.d(TAG, "🎭 Packet actor for terminated")
+            ComNetLog.d(TAG, "🎭 Packet actor for terminated")
         }
     }
 
@@ -56,7 +56,7 @@ class BlePacketProcessorRepositoryImpl @Inject constructor(
             try {
                 actor.send(packet)
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to send packet to actor for : ${e.message}")
+                ComNetLog.w(TAG, "Failed to send packet to actor for : ${e.message}")
                 // Fallback to direct processing if actor fails
                 handleReceivedPacket(packet)
             }
@@ -84,16 +84,16 @@ class BlePacketProcessorRepositoryImpl @Inject constructor(
     }
 
     private fun handleMessage(packet: BlePacket) {
-        Log.d(TAG, "Processing message")
+        ComNetLog.d(TAG, "Processing message")
         _message.value = packet
     }
 
     private fun handleFragment(packet: BlePacket) {
-        Log.d(TAG, "Processing fragment")
+        ComNetLog.d(TAG, "Processing fragment")
 
         val reassembledPacket = bleFragmentRepository.handleFragment(packet)
         if (reassembledPacket != null) {
-            Log.d(TAG, "Fragment reassembled, processing complete message")
+            ComNetLog.d(TAG, "Fragment reassembled, processing complete message")
             processPacket(reassembledPacket)
         }
     }

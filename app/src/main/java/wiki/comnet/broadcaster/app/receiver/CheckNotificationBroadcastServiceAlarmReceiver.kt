@@ -3,7 +3,7 @@ package wiki.comnet.broadcaster.app.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.core.content.ContextCompat
 import wiki.comnet.broadcaster.app.data.model.ServiceAction
 import wiki.comnet.broadcaster.app.data.model.ServiceState
@@ -13,7 +13,7 @@ class CheckNotificationBroadcastServiceAlarmReceiver : BroadcastReceiver() {
     private val TAG = "CheckNotificationBroadcastServiceAlarmReceiver"
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "onReceive: called")
+        ComNetLog.d(TAG, "onReceive: called")
         val serviceState = NotificationBroadcastService.readServiceState(context)
         if (serviceState == ServiceState.STOPPED) {
             Intent(context, NotificationBroadcastService::class.java).also {

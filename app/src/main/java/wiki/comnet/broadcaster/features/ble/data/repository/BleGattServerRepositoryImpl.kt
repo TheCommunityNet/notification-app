@@ -15,7 +15,7 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.ParcelUuid
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -79,7 +79,7 @@ class BleGattServerRepositoryImpl @Inject constructor(
             stopAdvertising()
             gattServer?.close()
             gattServer = null
-            Log.i(TAG, "GATT server stopped (already inactive)")
+            ComNetLog.i(TAG, "GATT server stopped (already inactive)")
             return
         }
 
@@ -104,7 +104,7 @@ class BleGattServerRepositoryImpl @Inject constructor(
             gattServer?.close()
             gattServer = null
 
-            Log.i(TAG, "GATT server stopped")
+            ComNetLog.i(TAG, "GATT server stopped")
         }
     }
 
@@ -125,13 +125,13 @@ class BleGattServerRepositoryImpl @Inject constructor(
             ) {
                 // Guard against callbacks after service shutdown
                 if (!isActive) {
-                    Log.d(TAG, "Server: Ignoring connection state change after shutdown")
+                    ComNetLog.d(TAG, "Server: Ignoring connection state change after shutdown")
                     return
                 }
 
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
-                        Log.i(TAG, "Server: Device connected ${device.address} ${device.name}")
+                        ComNetLog.i(TAG, "Server: Device connected ${device.address} ${device.name}")
 
                         val deviceConn = BleDeviceConnection(
                             device = device,
@@ -144,7 +144,7 @@ class BleGattServerRepositoryImpl @Inject constructor(
                     }
 
                     BluetoothProfile.STATE_DISCONNECTED -> {
-                        Log.i(TAG, "Server: Device disconnected ${device.address}")
+                        ComNetLog.i(TAG, "Server: Device disconnected ${device.address}")
                         bleConnectionTrackerRepository.cleanupDeviceConnection(device.address)
                     }
                 }
@@ -153,14 +153,14 @@ class BleGattServerRepositoryImpl @Inject constructor(
             override fun onServiceAdded(status: Int, service: BluetoothGattService) {
                 // Guard against callbacks after service shutdown
                 if (!isActive) {
-                    Log.d(TAG, "Server: Ignoring service added callback after shutdown")
+                    ComNetLog.d(TAG, "Server: Ignoring service added callback after shutdown")
                     return
                 }
 
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    Log.d(TAG, "Server: Service added successfully: ${service.uuid}")
+                    ComNetLog.d(TAG, "Server: Service added successfully: ${service.uuid}")
                 } else {
-                    Log.e(TAG, "Server: Failed to add service: ${service.uuid}, status: $status")
+                    ComNetLog.e(TAG, "Server: Failed to add service: ${service.uuid}, status: $status")
                 }
             }
 
@@ -175,23 +175,23 @@ class BleGattServerRepositoryImpl @Inject constructor(
             ) {
                 // Guard against callbacks after service shutdown
                 if (!isActive) {
-                    Log.d(TAG, "Server: Ignoring characteristic write after shutdown")
+                    ComNetLog.d(TAG, "Server: Ignoring characteristic write after shutdown")
                     return
                 }
 
                 if (characteristic.uuid == BleConfig.CHARACTERISTIC_UUID) {
-                    Log.i(
+                    ComNetLog.i(
                         TAG,
                         "Server: Received packet from ${device.address}, size: ${value.size} bytes"
                     )
 
                     val packet = value.toBlePacket()
                     if (packet == null) {
-                        Log.w(
+                        ComNetLog.w(
                             TAG,
                             "Server: Failed to parse packet from ${device.address}, size: ${value.size} bytes"
                         )
-                        Log.w(
+                        ComNetLog.w(
                             TAG,
                             "Server: Packet data: ${value.joinToString(" ") { "%02x".format(it) }}"
                         )
@@ -223,13 +223,13 @@ class BleGattServerRepositoryImpl @Inject constructor(
             ) {
                 // Guard against callbacks after service shutdown
                 if (!isActive) {
-                    Log.d(TAG, "Server: Ignoring descriptor write after shutdown")
+                    ComNetLog.d(TAG, "Server: Ignoring descriptor write after shutdown")
                     return
                 }
 
                 if (BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE.contentEquals(value)) {
                     bleConnectionTrackerRepository.addSubscribedDevice(device)
-                    Log.d(TAG, "Server: Connection setup complete for ${device.address}")
+                    ComNetLog.d(TAG, "Server: Connection setup complete for ${device.address}")
                 }
 
                 if (responseNeeded) {
@@ -240,11 +240,11 @@ class BleGattServerRepositoryImpl @Inject constructor(
 
         // Proper cleanup sequencing to prevent race conditions
         gattServer?.let { server ->
-            Log.d(TAG, "Cleaning up existing GATT server")
+            ComNetLog.d(TAG, "Cleaning up existing GATT server")
             try {
                 server.close()
             } catch (e: Exception) {
-                Log.w(TAG, "Error closing existing GATT server: ${e.message}")
+                ComNetLog.w(TAG, "Error closing existing GATT server: ${e.message}")
             }
         }
 
@@ -252,7 +252,7 @@ class BleGattServerRepositoryImpl @Inject constructor(
         Thread.sleep(100)
 
         if (!isActive) {
-            Log.d(TAG, "Service inactive, skipping GATT server creation")
+            ComNetLog.d(TAG, "Service inactive, skipping GATT server creation")
             return
         }
 
@@ -282,22 +282,22 @@ class BleGattServerRepositoryImpl @Inject constructor(
 
         gattServer?.addService(service)
 
-        Log.i(TAG, "GATT server setup complete")
+        ComNetLog.i(TAG, "GATT server setup complete")
     }
 
     private fun startAdvertising() {
         if (!isActive) {
-            Log.d(TAG, "Not starting advertising: manager not active")
+            ComNetLog.d(TAG, "Not starting advertising: manager not active")
             return
         }
 
         if (bluetoothLeAdvertiser == null) {
-            Log.w(TAG, "Not starting advertising: BLE advertiser not available on this device")
+            ComNetLog.w(TAG, "Not starting advertising: BLE advertiser not available on this device")
             return
         }
 
         if (!bluetoothAdapter.isMultipleAdvertisementSupported) {
-            Log.w(
+            ComNetLog.w(
                 TAG,
                 "Not starting advertising: multiple advertisement not supported on this device"
             )
@@ -319,11 +319,11 @@ class BleGattServerRepositoryImpl @Inject constructor(
 
         advertiseCallback = object : AdvertiseCallback() {
             override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
-                Log.i(TAG, "Advertising started")
+                ComNetLog.i(TAG, "Advertising started")
             }
 
             override fun onStartFailure(errorCode: Int) {
-                Log.e(TAG, "Advertising failed: $errorCode")
+                ComNetLog.e(TAG, "Advertising failed: $errorCode")
             }
         }
 
@@ -334,12 +334,12 @@ class BleGattServerRepositoryImpl @Inject constructor(
                 advertiseCallback
             )
         } catch (se: SecurityException) {
-            Log.e(
+            ComNetLog.e(
                 TAG,
                 "SecurityException starting advertising (missing permission?): ${se.message}"
             )
         } catch (e: Exception) {
-            Log.e(TAG, "Exception starting advertising: ${e.message}")
+            ComNetLog.e(TAG, "Exception starting advertising: ${e.message}")
         }
     }
 
@@ -350,7 +350,7 @@ class BleGattServerRepositoryImpl @Inject constructor(
         try {
             advertiseCallback?.let { cb -> bluetoothLeAdvertiser.stopAdvertising(cb) }
         } catch (e: Exception) {
-            Log.w(TAG, "Error stopping advertising: ${e.message}")
+            ComNetLog.w(TAG, "Error stopping advertising: ${e.message}")
         }
     }
 }

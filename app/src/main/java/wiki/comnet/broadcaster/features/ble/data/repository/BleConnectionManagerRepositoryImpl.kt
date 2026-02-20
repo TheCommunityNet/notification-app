@@ -1,7 +1,7 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
 import android.bluetooth.BluetoothManager
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import wiki.comnet.broadcaster.core.di.ServiceScope
@@ -42,12 +42,12 @@ class BleConnectionManagerRepositoryImpl @Inject constructor(
             isActive = true
 
             if (!bluetoothPermissionManagerRepository.hasBluetoothPermissions()) {
-                Log.e(TAG, "Bluetooth permissions not granted")
+                ComNetLog.e(TAG, "Bluetooth permissions not granted")
                 return false
             }
 
             if (bluetoothAdapter?.isEnabled != true) {
-                Log.e(TAG, "Bluetooth is not enabled")
+                ComNetLog.e(TAG, "Bluetooth is not enabled")
                 return false
             }
 
@@ -58,14 +58,14 @@ class BleConnectionManagerRepositoryImpl @Inject constructor(
                     this@BleConnectionManagerRepositoryImpl.isActive = false
                     return@launch
                 } else {
-                    Log.i(TAG, "GATT Server disabled by debug settings; not starting")
+                    ComNetLog.i(TAG, "GATT Server disabled by debug settings; not starting")
                 }
 
                 if (!bleGattClientRepository.start()) {
                     this@BleConnectionManagerRepositoryImpl.isActive = false
                     return@launch
                 } else {
-                    Log.i(TAG, "GATT Client disabled by debug settings; not starting")
+                    ComNetLog.i(TAG, "GATT Client disabled by debug settings; not starting")
                 }
 
                 this@BleConnectionManagerRepositoryImpl.isActive = false
@@ -87,14 +87,14 @@ class BleConnectionManagerRepositoryImpl @Inject constructor(
 
             return true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start Bluetooth services: ${e.message}")
+            ComNetLog.e(TAG, "Failed to start Bluetooth services: ${e.message}")
             isActive = false
             return false
         }
     }
 
     override fun stopServices() {
-        Log.i(TAG, "Stopping power-optimized Bluetooth services")
+        ComNetLog.i(TAG, "Stopping power-optimized Bluetooth services")
 
         isActive = false
 
@@ -110,7 +110,7 @@ class BleConnectionManagerRepositoryImpl @Inject constructor(
             // Cancel the coroutine scope
             // TODO: fix me
             // connectionScope.cancel()
-            Log.i(TAG, "All Bluetooth services stopped")
+            ComNetLog.i(TAG, "All Bluetooth services stopped")
         }
     }
 

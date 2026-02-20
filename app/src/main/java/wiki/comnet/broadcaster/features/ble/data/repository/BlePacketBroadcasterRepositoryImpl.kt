@@ -6,7 +6,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothStatusCodes
 import android.os.Build
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -54,7 +54,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
     private val broadcasterActor = broadcasterScope.actor<BroadcastRequest>(
         capacity = Channel.UNLIMITED
     ) {
-        Log.d(TAG, "🎭 Created packet broadcaster actor")
+        ComNetLog.d(TAG, "🎭 Created packet broadcaster actor")
         try {
             for (request in channel) {
                 broadcastSinglePacketInternal(
@@ -64,7 +64,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
                 )
             }
         } finally {
-            Log.d(TAG, "🎭 Packet broadcaster actor terminated")
+            ComNetLog.d(TAG, "🎭 Packet broadcaster actor terminated")
         }
     }
 
@@ -79,12 +79,12 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
         val fragments = try {
             fragmentRepository.createFragments(packet)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Fragment creation failed: ${e.message}", e)
+            ComNetLog.e(TAG, "❌ Fragment creation failed: ${e.message}", e)
             return
         }
 
         if (fragments.size > 1) {
-            Log.d(TAG, "Fragmenting packet into ${fragments.size} fragments")
+            ComNetLog.d(TAG, "Fragmenting packet into ${fragments.size} fragments")
             // TODO: fix me
             // if (transferId != null) {
             // TransferProgressManager.start(transferId, fragments.size)
@@ -94,7 +94,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
                 fragments.forEachIndexed { index, fragment ->
                     if (!isActive) return@launch
                     // If cancelled, stop sending remaining fragments
-                    Log.d(TAG, "Transfer ${index + 1}/${fragments.size}")
+                    ComNetLog.d(TAG, "Transfer ${index + 1}/${fragments.size}")
                     if (transferId != null && transferJobs[transferId]?.isCancelled == true) return@launch
                     broadcastSinglePacket(
                         RoutedPacket(fragment, transferId = transferId),
@@ -130,7 +130,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
             try {
                 broadcasterActor.send(BroadcastRequest(routed, gattServer, characteristic))
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to send broadcast request to actor: ${e.message}")
+                ComNetLog.w(TAG, "Failed to send broadcast request to actor: ${e.message}")
                 // Fallback to direct processing if actor fails
                 broadcastSinglePacketInternal(routed, gattServer, characteristic)
             }
@@ -151,7 +151,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
         val subscribedDevices = connectionTrackerRepository.getSubscribedDevices()
         val connectedDevices = connectionTrackerRepository.getConnectedDevices()
 
-        Log.i(
+        ComNetLog.i(
             TAG,
             "Broadcasting packet type ${packet.type} to ${subscribedDevices.size} server + ${connectedDevices.size} client connections"
         )
@@ -160,12 +160,12 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
         // Send to server connections (devices connected to our GATT server)
         subscribedDevices.forEach { device ->
             if (device.address == routed.relayAddress) {
-                Log.d(TAG, "Skipping broadcast to client back to relayer: ${device.address}")
+                ComNetLog.d(TAG, "Skipping broadcast to client back to relayer: ${device.address}")
                 return@forEach
             }
             // FIXME: fix me
             // if (connectionTrackerRepository.addressPeerMap[device.address] == senderID) {
-            //     Log.d(TAG, "Skipping broadcast to client back to sender: ${device.address}")
+            //     ComNetLog.d(TAG, "Skipping broadcast to client back to sender: ${device.address}")
             //     return@forEach
             // }
             notifyDevice(device, data, gattServer, characteristic)
@@ -175,14 +175,14 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
         connectedDevices.values.forEach { deviceConn ->
             if (deviceConn.isClient && deviceConn.gatt != null && deviceConn.characteristic != null) {
                 if (deviceConn.device.address == routed.relayAddress) {
-                    Log.d(
+                    ComNetLog.d(
                         TAG,
                         "Skipping broadcast to server back to relayer: ${deviceConn.device.address}"
                     )
                     return@forEach
                 }
                 // if (connectionTrackerRepository.addressPeerMap[deviceConn.device.address] == senderID) {
-                //     Log.d(TAG, "Skipping broadcast to server back to sender: ${deviceConn.device.address}")
+                //     ComNetLog.d(TAG, "Skipping broadcast to server back to sender: ${deviceConn.device.address}")
                 //     return@forEach
                 // }
                 writeToDeviceConn(deviceConn, data)
@@ -212,7 +212,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
                 result
             } ?: false
         } catch (e: Exception) {
-            Log.w(TAG, "Error sending to server connection ${device.address}: ${e.message}")
+            ComNetLog.w(TAG, "Error sending to server connection ${device.address}: ${e.message}")
             connectionScope.launch {
                 delay(CLEANUP_DELAY)
                 connectionTrackerRepository.removeSubscribedDevice(device)
@@ -243,7 +243,7 @@ class BlePacketBroadcasterRepositoryImpl @Inject constructor(
                 result
             } ?: false
         } catch (e: Exception) {
-            Log.w(
+            ComNetLog.w(
                 TAG,
                 "Error sending to client connection ${deviceConn.device.address}: ${e.message} ${data.size}"
             )

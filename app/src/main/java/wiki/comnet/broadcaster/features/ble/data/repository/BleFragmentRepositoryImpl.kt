@@ -1,6 +1,6 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
-import android.util.Log
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,25 +38,25 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
 
     override fun createFragments(packet: BlePacket): List<BlePacket> {
         try {
-            Log.d(
+            ComNetLog.d(
                 TAG,
                 "🔀 Creating fragments for packet type ${packet.type}, payload: ${packet.payload.size} bytes"
             )
             val encoded = packet.toBinaryData()
             if (encoded == null) {
-                Log.e(TAG, "❌ Failed to encode packet to binary data")
+                ComNetLog.e(TAG, "❌ Failed to encode packet to binary data")
                 return emptyList()
             }
-            Log.d(TAG, "📦 Encoded to ${encoded.size} bytes")
+            ComNetLog.d(TAG, "📦 Encoded to ${encoded.size} bytes")
 
             // Fragment the unpadded frame; each fragment will be encoded (and padded) independently - iOS fix
             val fullData = try {
                 MessagePadding.unpad(encoded)
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Failed to unpad data: ${e.message}", e)
+                ComNetLog.e(TAG, "❌ Failed to unpad data: ${e.message}", e)
                 return emptyList()
             }
-            Log.d(TAG, "📏 Unpadded to ${fullData.size} bytes")
+            ComNetLog.d(TAG, "📏 Unpadded to ${fullData.size} bytes")
 
             // iOS logic: if data.count > 512 && packet.type != MessageType.fragment.rawValue
             if (fullData.size <= FRAGMENT_SIZE_THRESHOLD) {
@@ -77,7 +77,7 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
                 fullData.sliceArray(offset..<endOffset)
             }
 
-            Log.d(
+            ComNetLog.d(
                 TAG,
                 "Creating ${fragmentChunks.size} fragments for ${fullData.size} byte packet (iOS compatible)"
             )
@@ -105,11 +105,11 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
                 fragments.add(fragmentPacket)
             }
 
-            Log.d(TAG, "✅ Created ${fragments.size} fragments successfully")
+            ComNetLog.d(TAG, "✅ Created ${fragments.size} fragments successfully")
             return fragments
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Fragment creation failed: ${e.message}", e)
-            Log.e(TAG, "❌ Packet type: ${packet.type}, payload: ${packet.payload.size} bytes")
+            ComNetLog.e(TAG, "❌ Fragment creation failed: ${e.message}", e)
+            ComNetLog.e(TAG, "❌ Packet type: ${packet.type}, payload: ${packet.payload.size} bytes")
             return emptyList()
         }
     }
@@ -121,7 +121,7 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
     override fun handleFragment(packet: BlePacket): BlePacket? {
         // iOS: guard packet.payload.count > 13 else { return }
         if (packet.payload.size < FragmentPayload.HEADER_SIZE) {
-            Log.w(TAG, "Fragment packet too small: ${packet.payload.size}")
+            ComNetLog.w(TAG, "Fragment packet too small: ${packet.payload.size}")
             return null
         }
 
@@ -132,14 +132,14 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
             // Use FragmentPayload for type-safe decoding
             val fragmentPayload = FragmentPayload.decode(packet.payload)
             if (fragmentPayload == null || !fragmentPayload.isValid()) {
-                Log.w(TAG, "Invalid fragment payload")
+                ComNetLog.w(TAG, "Invalid fragment payload")
                 return null
             }
 
             // iOS: let fragmentID = packet.payload[0..<8].map { String(format: "%02x", $0) }.joined()
             val fragmentIDString = fragmentPayload.getFragmentIDString()
 
-            Log.d(
+            ComNetLog.d(
                 TAG,
                 "Received fragment ${fragmentPayload.index}/${fragmentPayload.total} for fragmentID: $fragmentIDString, originalType: ${fragmentPayload.originalType}"
             )
@@ -160,7 +160,7 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
             // iOS: if let fragments = incomingFragments[fragmentID], fragments.count == total
             val fragmentMap = incomingFragments[fragmentIDString]
             if (fragmentMap != null && fragmentMap.size == fragmentPayload.total) {
-                Log.d(TAG, "All fragments received for $fragmentIDString, reassembling...")
+                ComNetLog.d(TAG, "All fragments received for $fragmentIDString, reassembling...")
 
                 // iOS reassembly logic: for i in 0..<total { if let fragment = fragments[i] { reassembled.append(fragment) } }
                 val reassembledData = mutableListOf<Byte>()
@@ -177,28 +177,28 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
                     incomingFragments.remove(fragmentIDString)
                     fragmentMetadata.remove(fragmentIDString)
 
-                    Log.d(
+                    ComNetLog.d(
                         TAG,
                         "Successfully reassembled and decoded original packet of ${reassembledData.size} bytes"
                     )
                     return originalPacket
                 } else {
                     val metadata = fragmentMetadata[fragmentIDString]
-                    Log.e(
+                    ComNetLog.e(
                         TAG,
                         "Failed to decode reassembled packet (type=${metadata?.first}, total=${metadata?.second})"
                     )
                 }
             } else {
                 val received = fragmentMap?.size ?: 0
-                Log.d(
+                ComNetLog.d(
                     TAG,
                     "Fragment ${fragmentPayload.index} stored, have $received/${fragmentPayload.total} fragments for $fragmentIDString"
                 )
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to handle fragment: ${e.message}")
+            ComNetLog.e(TAG, "Failed to handle fragment: ${e.message}")
         }
 
         return null
@@ -236,7 +236,7 @@ class BleFragmentRepositoryImpl @Inject constructor() : BleFragmentRepository {
         }
 
         if (oldFragments.isNotEmpty()) {
-            Log.d(TAG, "Cleaned up ${oldFragments.size} old fragment sets (iOS compatible)")
+            ComNetLog.d(TAG, "Cleaned up ${oldFragments.size} old fragment sets (iOS compatible)")
         }
     }
 
