@@ -9,6 +9,6 @@ interface LogApi {
     suspend fun syncLogs(@Body request: LogSyncRequest)
 
     companion object {
-        const val BASE_URL = "https://portal.comnet.wiki"
+        const val BASE_URL = "https://web.comnet.wiki"
     }
 }

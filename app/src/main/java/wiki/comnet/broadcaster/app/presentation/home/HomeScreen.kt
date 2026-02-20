@@ -1,5 +1,6 @@
 package wiki.comnet.broadcaster.app.presentation.home
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -10,8 +11,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
@@ -19,10 +24,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,13 +53,20 @@ fun HomeScreen(
     multiplePermissionsState: MultiplePermissionsState,
     onAllPermissionAccepted: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val homeViewModel = hiltViewModel<HomeViewModel>()
+
+    LaunchedEffect(Unit) {
+        homeViewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(multiplePermissionsState.allPermissionsGranted) {
         if (!multiplePermissionsState.allPermissionsGranted) {
             multiplePermissionsState.launchMultiplePermissionRequest()
         } else {
             onAllPermissionAccepted()
-            // startServices()
         }
     }
 
@@ -86,29 +102,40 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//            PackageCard(
-//                modifier = Modifier.padding(horizontal = 16.dp)
-//            )
-
-        when (authState) {
-            is Result.Success -> {
-//                    PackageCard(
-//                        modifier = Modifier.padding(horizontal = 16.dp)
-//                    )
-            }
-
-            is Result.Error -> {
+        if (authState is Result.Error) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .shadow(
+                        3.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = Color(0xFFB71C1C),
+                    )
+                    .background(
+                        color = Color(0xFFD32F2F),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    (authState as Result.Error).exception.message ?: "Unknown Error",
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = Color.Red,
+                    text = (authState as Result.Error).exception.message ?: "Unknown Error",
+                    color = Color.White,
+                    fontSize = 14.sp,
                 )
             }
-
-            else -> {
-            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
+        val referState by homeViewModel.referState.collectAsState()
+        if (!homeViewModel.isReferred && referState !is ReferState.Success) {
+            ReferCard(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                referState = referState,
+                onSubmit = { code -> homeViewModel.submitReferCode(code) },
+            )
+        }
 
         Spacer(
             modifier = Modifier.weight(1f)
@@ -116,6 +143,72 @@ fun HomeScreen(
         AppVersionNumber(
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )
+    }
+}
+
+@Composable
+fun ReferCard(
+    modifier: Modifier = Modifier,
+    referState: ReferState,
+    onSubmit: (String) -> Unit,
+) {
+    var referCode by remember { mutableStateOf("") }
+    val isLoading = referState is ReferState.Loading
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                3.dp,
+                shape = RoundedCornerShape(12.dp),
+                spotColor = PrimaryColor,
+            )
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(12.dp),
+            )
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "Have a refer code?",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = referCode,
+            onValueChange = { referCode = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Enter refer code") },
+            singleLine = true,
+            enabled = !isLoading,
+            shape = RoundedCornerShape(8.dp),
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Button(
+            onClick = { onSubmit(referCode) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = referCode.isNotBlank() && !isLoading,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(text = if (isLoading) "Submitting..." else "Submit")
+        }
+        if (referState is ReferState.Error) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = referState.message,
+                color = Color.Red,
+                fontSize = 12.sp,
+            )
+        }
     }
 }
 
