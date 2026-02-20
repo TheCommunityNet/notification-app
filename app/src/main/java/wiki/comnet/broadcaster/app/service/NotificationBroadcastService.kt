@@ -24,6 +24,7 @@ import wiki.comnet.broadcaster.app.data.mapper.toExternalNotification
 import wiki.comnet.broadcaster.app.data.mapper.toWebsocketNotificationTrackingMessage
 import wiki.comnet.broadcaster.app.data.model.ServiceAction
 import wiki.comnet.broadcaster.app.data.model.ServiceState
+import wiki.comnet.broadcaster.app.receiver.AlarmScheduler
 import wiki.comnet.broadcaster.app.up.Distributor
 import wiki.comnet.broadcaster.app.worker.RestartServiceWorker
 import wiki.comnet.broadcaster.core.common.Result
@@ -176,21 +177,25 @@ class NotificationBroadcastService() : Service() {
         Log.d(TAG, "onTaskRemoved: called")
         val restartIntent = Intent(applicationContext, NotificationBroadcastService::class.java)
         val pendingIntent = PendingIntent.getService(
-            applicationContext, 1, restartIntent, PendingIntent.FLAG_IMMUTABLE
+            applicationContext, 1, restartIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val alarmManager = getSystemService(AlarmManager::class.java)
-        try {
-            alarmManager.setExact(
-                AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis() + 5000,
-                pendingIntent
-            )
-        } catch (e: SecurityException) {
-            alarmManager.set(
-                AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis() + 5000,
-                pendingIntent
-            )
+
+        val triggerAt = System.currentTimeMillis() + 5000
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+        } else {
+            try {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent
+                )
+            } catch (e: SecurityException) {
+                alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent
+                )
+            }
         }
 
         super.onTaskRemoved(rootIntent)
@@ -528,13 +533,14 @@ class NotificationBroadcastService() : Service() {
 
     class BootStartReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
-            Log.d(TAG, "BootStartReceiver: onReceive called")
+            Log.d(TAG, "BootStartReceiver: onReceive called, action=${intent?.action}")
             if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
                 saveServiceState(
                     context, ServiceState.STOPPED
                 )
             }
             RestartServiceWorker.refresh(context)
+            AlarmScheduler.scheduleServiceCheck(context)
         }
     }
 }
