@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -142,6 +143,23 @@ fun HomeScreen(
         Spacer(
             modifier = Modifier.weight(1f)
         )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(
+                onClick = { homeViewModel.triggerLogSync() },
+            ) {
+                ThemeText(
+                    text = "Send log",
+                    fontSize = 12.sp,
+                    color = Color(0x80000000),
+                )
+            }
+        }
         AppVersionNumber(
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )

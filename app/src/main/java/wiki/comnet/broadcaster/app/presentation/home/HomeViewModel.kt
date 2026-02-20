@@ -1,15 +1,23 @@
 package wiki.comnet.broadcaster.app.presentation.home
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import wiki.comnet.broadcaster.app.worker.LogSyncWorker
 import wiki.comnet.broadcaster.core.domain.model.WifiEvent
 import wiki.comnet.broadcaster.core.domain.repository.DeviceIdRepository
 import wiki.comnet.broadcaster.core.domain.repository.WifiConnectionRepository
@@ -19,6 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val wifiConnectionRepository: WifiConnectionRepository,
     private val communityNetApi: CommunityNetApi,
     private val deviceIdRepository: DeviceIdRepository,
@@ -76,6 +85,24 @@ class HomeViewModel @Inject constructor(
                 _referState.value = ReferState.Error(e.message ?: "Something went wrong")
                 _toastMessage.emit(e.message ?: "Something went wrong")
             }
+        }
+    }
+
+    fun triggerLogSync() {
+        val syncRequest = OneTimeWorkRequestBuilder<LogSyncWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "LogSyncManual",
+            ExistingWorkPolicy.KEEP,
+            syncRequest,
+        )
+        viewModelScope.launch {
+            _toastMessage.emit("Syncing logs…")
         }
     }
 }
