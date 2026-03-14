@@ -96,7 +96,7 @@ fun ReferCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            ThemeText(text = if (isLoading) "Submitting..." else "တင်သွင်းမည်")
+            ThemeText(text = if (isLoading) "တင်သွင်းနေသည်" else "တင်သွင်းမည်")
         }
         if (referState is Result.Success) {
             Spacer(modifier = Modifier.height(8.dp))
