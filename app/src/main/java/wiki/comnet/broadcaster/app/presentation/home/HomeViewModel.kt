@@ -91,6 +91,7 @@ class HomeViewModel @Inject constructor(
                     is Result.Success -> {
                         _referState.value = Result.Success(Unit)
                         _toastMessage.emit("ရည်ညွှန်းသူတင်သွင်းပြီးပါပြီ")
+                        activeVoucher()
                     }
                     is Result.Error -> _referState.value = Result.Error(result.exception)
                 }
