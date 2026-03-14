@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
@@ -75,6 +76,9 @@ fun ReferCard(
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors().copy(
                 unfocusedIndicatorColor = Color(0xFFD1D5DC)
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { onSubmit(referCode) }
             )
         )
         Spacer(modifier = Modifier.height(12.dp))
