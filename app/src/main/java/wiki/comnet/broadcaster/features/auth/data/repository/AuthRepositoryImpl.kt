@@ -232,6 +232,18 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
+        val currentToken = sharePreferenceRepository.getAuthToken()
+        if (!currentToken?.refreshToken.isNullOrBlank()) {
+            try {
+                keycloakApi.revokeRefreshToken(
+                    clientId = AuthConfig.CLIENT_ID,
+                    refreshToken = currentToken!!.refreshToken,
+                )
+                ComNetLog.d(TAG, "Keycloak session revoked")
+            } catch (e: Exception) {
+                ComNetLog.e(TAG, "Keycloak revoke failed (clearing local state anyway)", e)
+            }
+        }
         sharePreferenceRepository.clearAuthToken()
         _authState.value = Result.Initial
         ComNetLog.d(TAG, "User logged out")
