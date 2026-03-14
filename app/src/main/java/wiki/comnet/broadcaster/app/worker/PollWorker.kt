@@ -1,7 +1,6 @@
 package wiki.comnet.broadcaster.app.worker
 
 import android.content.Context
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -10,6 +9,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import wiki.comnet.broadcaster.app.up.Distributor
 import wiki.comnet.broadcaster.core.domain.repository.DeviceIdRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import wiki.comnet.broadcaster.features.notification.domain.model.ExternalNotification
 import wiki.comnet.broadcaster.features.notification.domain.repository.NotificationRepository
 import wiki.comnet.broadcaster.features.websocket.domain.model.WebsocketNotification

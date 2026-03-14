@@ -1,6 +1,5 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -14,6 +13,7 @@ import wiki.comnet.broadcaster.features.ble.data.protocol.MessageType
 import wiki.comnet.broadcaster.features.ble.domain.model.BlePacket
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleFragmentRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BlePacketProcessorRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import javax.inject.Inject
 
 class BlePacketProcessorRepositoryImpl @Inject constructor(

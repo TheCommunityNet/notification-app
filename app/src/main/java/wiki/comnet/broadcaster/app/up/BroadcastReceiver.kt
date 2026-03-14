@@ -3,7 +3,6 @@ package wiki.comnet.broadcaster.app.up
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +10,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import wiki.comnet.broadcaster.features.websocket.domain.repository.UnifiedPushAppRepository
 import javax.inject.Inject
 

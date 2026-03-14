@@ -3,12 +3,12 @@ package wiki.comnet.broadcaster.app.worker
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.core.content.ContextCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import wiki.comnet.broadcaster.app.data.model.ServiceAction
 import wiki.comnet.broadcaster.app.service.NotificationBroadcastService
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 
 class NotificationBroadcastWatchdogWorker(private val context: Context, params: WorkerParameters) :
     Worker(context, params) {

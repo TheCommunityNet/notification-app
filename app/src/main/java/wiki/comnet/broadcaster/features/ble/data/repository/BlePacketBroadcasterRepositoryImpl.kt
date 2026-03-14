@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothStatusCodes
 import android.os.Build
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,6 +23,7 @@ import wiki.comnet.broadcaster.features.ble.domain.model.RoutedPacket
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleConnectionTrackerRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleFragmentRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BlePacketBroadcasterRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 

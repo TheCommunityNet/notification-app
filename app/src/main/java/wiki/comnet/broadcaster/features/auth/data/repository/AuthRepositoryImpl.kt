@@ -2,7 +2,6 @@ package wiki.comnet.broadcaster.features.auth.data.repository
 
 import android.content.Context
 import android.content.Intent
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,6 +27,7 @@ import wiki.comnet.broadcaster.features.auth.domain.model.AuthToken
 import wiki.comnet.broadcaster.features.auth.domain.model.UserProfile
 import wiki.comnet.broadcaster.features.auth.domain.repository.AuthRepository
 import wiki.comnet.broadcaster.features.auth.domain.repository.SharePreferenceRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -246,7 +246,8 @@ class AuthRepositoryImpl @Inject constructor(
         val codeVerifier = response.request.codeVerifier
 
         if (code == null || codeVerifier == null) {
-            _authState.value = Result.Error(Exception("Missing authorization code or code verifier"))
+            _authState.value =
+                Result.Error(Exception("Missing authorization code or code verifier"))
             return
         }
 

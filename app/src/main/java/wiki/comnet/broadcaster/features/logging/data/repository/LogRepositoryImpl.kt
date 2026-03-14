@@ -56,7 +56,7 @@ class LogRepositoryImpl @Inject constructor(
                 val request = LogSyncRequest(
                     logs = unsyncedLogs.map { entity ->
                         LogEntry(
-                            level = LogLevel.fromPriority(entity.level).name,
+                            level = entity.level,
                             tag = entity.tag,
                             message = entity.message,
                             throwable = entity.throwable,

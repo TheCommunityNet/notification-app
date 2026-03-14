@@ -11,7 +11,6 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.core.content.edit
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,6 +37,7 @@ import wiki.comnet.broadcaster.features.ble.data.protocol.MessageType
 import wiki.comnet.broadcaster.features.ble.data.repository.BluetoothPermissionManagerRepository
 import wiki.comnet.broadcaster.features.ble.domain.model.BlePacket
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleMeshRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import wiki.comnet.broadcaster.features.notification.domain.model.NotificationTracking
 import wiki.comnet.broadcaster.features.notification.domain.repository.NotificationRepository
 import wiki.comnet.broadcaster.features.notification.domain.repository.NotificationTrackingRepository
@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class NotificationBroadcastService() : Service() {
+class NotificationBroadcastService : Service() {
     companion object {
         private const val TAG = "NotificationBroadcastService"
 

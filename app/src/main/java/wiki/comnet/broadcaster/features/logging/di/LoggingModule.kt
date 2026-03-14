@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -21,7 +22,15 @@ object LoggingModule {
     @Provides
     @Singleton
     fun provideLogApi(): LogApi {
+        val acceptApplicationJson = Interceptor { chain ->
+            chain.proceed(
+                chain.request().newBuilder()
+                    .addHeader("Accept", "application/json")
+                    .build()
+            )
+        }
         val client = OkHttpClient.Builder()
+            .addInterceptor(acceptApplicationJson)
             .build()
 
         return Retrofit.Builder()

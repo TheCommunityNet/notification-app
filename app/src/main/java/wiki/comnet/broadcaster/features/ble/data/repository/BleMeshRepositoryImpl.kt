@@ -1,6 +1,5 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -10,6 +9,7 @@ import wiki.comnet.broadcaster.features.ble.domain.model.BlePacket
 import wiki.comnet.broadcaster.features.ble.domain.model.RoutedPacket
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleConnectionManagerRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleMeshRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import javax.inject.Inject
 
 class BleMeshRepositoryImpl @Inject constructor(

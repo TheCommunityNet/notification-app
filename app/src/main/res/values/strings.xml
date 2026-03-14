@@ -5,5 +5,6 @@
 
     <string name="package_title">အင်တာနက်</string>
     <string name="empty_package">မရှိသေးပါ</string>
+    <string name="package_activating_button_label">ကုဒ်ထည့်နေသည်</string>
     <string name="package_activate_button_label">ကုဒ်ထည့်မယ်</string>
 </resources>

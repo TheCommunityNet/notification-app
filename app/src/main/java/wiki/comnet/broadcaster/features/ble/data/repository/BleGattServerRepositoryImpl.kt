@@ -15,7 +15,6 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.content.Context
 import android.os.ParcelUuid
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -29,6 +28,7 @@ import wiki.comnet.broadcaster.features.ble.domain.model.BleDeviceConnection
 import wiki.comnet.broadcaster.features.ble.domain.model.BlePacket
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleConnectionTrackerRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleGattServerRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import javax.inject.Inject
 
 @SuppressLint("MissingPermission")
@@ -131,7 +131,10 @@ class BleGattServerRepositoryImpl @Inject constructor(
 
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
-                        ComNetLog.i(TAG, "Server: Device connected ${device.address} ${device.name}")
+                        ComNetLog.i(
+                            TAG,
+                            "Server: Device connected ${device.address} ${device.name}"
+                        )
 
                         val deviceConn = BleDeviceConnection(
                             device = device,
@@ -160,7 +163,10 @@ class BleGattServerRepositoryImpl @Inject constructor(
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     ComNetLog.d(TAG, "Server: Service added successfully: ${service.uuid}")
                 } else {
-                    ComNetLog.e(TAG, "Server: Failed to add service: ${service.uuid}, status: $status")
+                    ComNetLog.e(
+                        TAG,
+                        "Server: Failed to add service: ${service.uuid}, status: $status"
+                    )
                 }
             }
 
@@ -292,7 +298,10 @@ class BleGattServerRepositoryImpl @Inject constructor(
         }
 
         if (bluetoothLeAdvertiser == null) {
-            ComNetLog.w(TAG, "Not starting advertising: BLE advertiser not available on this device")
+            ComNetLog.w(
+                TAG,
+                "Not starting advertising: BLE advertiser not available on this device"
+            )
             return
         }
 

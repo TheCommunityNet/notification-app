@@ -2,7 +2,6 @@ package wiki.comnet.broadcaster.features.ble.data.repository
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -11,6 +10,7 @@ import wiki.comnet.broadcaster.features.ble.constant.BleConfig
 import wiki.comnet.broadcaster.features.ble.domain.model.BleConnectionAttempt
 import wiki.comnet.broadcaster.features.ble.domain.model.BleDeviceConnection
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleConnectionTrackerRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
@@ -115,7 +115,10 @@ class BleConnectionTrackerRepositoryImpl @Inject constructor(
             // Double-check inside synchronized block
             val currentAttempt = pendingConnections[deviceAddress]
             if (currentAttempt != null && !currentAttempt.isExpired() && !currentAttempt.shouldRetry()) {
-                ComNetLog.d(TAG, "Tracker: Connection attempt already in progress for $deviceAddress")
+                ComNetLog.d(
+                    TAG,
+                    "Tracker: Connection attempt already in progress for $deviceAddress"
+                )
                 return false
             }
             if (currentAttempt != null) {
@@ -125,7 +128,10 @@ class BleConnectionTrackerRepositoryImpl @Inject constructor(
             // Update connection attempt atomically
             val attempts = (currentAttempt?.attempts ?: 0) + 1
             pendingConnections[deviceAddress] = BleConnectionAttempt(attempts)
-            ComNetLog.d(TAG, "Tracker: Added pending connection for $deviceAddress (attempts: $attempts)")
+            ComNetLog.d(
+                TAG,
+                "Tracker: Added pending connection for $deviceAddress (attempts: $attempts)"
+            )
             return true
         }
     }

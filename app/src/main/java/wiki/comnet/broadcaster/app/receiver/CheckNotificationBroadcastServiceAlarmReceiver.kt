@@ -3,11 +3,11 @@ package wiki.comnet.broadcaster.app.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import androidx.core.content.ContextCompat
 import wiki.comnet.broadcaster.app.data.model.ServiceAction
 import wiki.comnet.broadcaster.app.data.model.ServiceState
 import wiki.comnet.broadcaster.app.service.NotificationBroadcastService
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 
 class CheckNotificationBroadcastServiceAlarmReceiver : BroadcastReceiver() {
     private val TAG = "CheckNotificationBroadcastServiceAlarmReceiver"

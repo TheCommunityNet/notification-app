@@ -3,6 +3,7 @@ package wiki.comnet.broadcaster.features.logging
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import wiki.comnet.broadcaster.features.logging.ComNetLog.init
 import wiki.comnet.broadcaster.features.logging.domain.model.LogLevel
 import wiki.comnet.broadcaster.features.logging.domain.repository.LogRepository
 

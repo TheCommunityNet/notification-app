@@ -31,7 +31,11 @@ object AlarmScheduler {
         }
 
         try {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAt,
+                pendingIntent
+            )
         } catch (e: SecurityException) {
             ComNetLog.w(TAG, "SecurityException scheduling exact alarm, falling back to inexact", e)
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)

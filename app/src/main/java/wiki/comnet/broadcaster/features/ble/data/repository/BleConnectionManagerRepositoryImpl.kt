@@ -1,7 +1,6 @@
 package wiki.comnet.broadcaster.features.ble.data.repository
 
 import android.bluetooth.BluetoothManager
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import wiki.comnet.broadcaster.core.di.ServiceScope
@@ -13,6 +12,7 @@ import wiki.comnet.broadcaster.features.ble.domain.repository.BleGattClientRepos
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleGattServerRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BlePacketBroadcasterRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BlePacketProcessorRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import javax.inject.Inject
 
 class BleConnectionManagerRepositoryImpl @Inject constructor(

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltAndroidApp
-class CommunityNetApp() : Application(),
+class CommunityNetApp : Application(),
     Configuration.Provider {
 
     @Inject

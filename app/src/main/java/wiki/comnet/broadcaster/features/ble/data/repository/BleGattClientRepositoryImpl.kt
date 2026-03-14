@@ -17,7 +17,6 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.Build
 import android.os.ParcelUuid
-import wiki.comnet.broadcaster.features.logging.ComNetLog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -31,6 +30,7 @@ import wiki.comnet.broadcaster.features.ble.domain.model.BleDeviceConnection
 import wiki.comnet.broadcaster.features.ble.domain.model.BlePacket
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleConnectionTrackerRepository
 import wiki.comnet.broadcaster.features.ble.domain.repository.BleGattClientRepository
+import wiki.comnet.broadcaster.features.logging.ComNetLog
 import javax.inject.Inject
 
 @SuppressLint("MissingPermission")
@@ -136,7 +136,10 @@ class BleGattClientRepositoryImpl @Inject constructor(
         val timeSinceLastStart = currentTime - lastScanStartTime
         if (timeSinceLastStart < scanRateLimit) {
             val remainingWait = scanRateLimit - timeSinceLastStart
-            ComNetLog.w(TAG, "Scan rate limited: need to wait ${remainingWait}ms before starting scan")
+            ComNetLog.w(
+                TAG,
+                "Scan rate limited: need to wait ${remainingWait}ms before starting scan"
+            )
 
             // Schedule delayed scan start
             connectionScope.launch {
@@ -182,7 +185,11 @@ class BleGattClientRepositoryImpl @Inject constructor(
                     )
 
                     SCAN_FAILED_INTERNAL_ERROR -> ComNetLog.e(TAG, "SCAN_FAILED_INTERNAL_ERROR")
-                    SCAN_FAILED_FEATURE_UNSUPPORTED -> ComNetLog.e(TAG, "SCAN_FAILED_FEATURE_UNSUPPORTED")
+                    SCAN_FAILED_FEATURE_UNSUPPORTED -> ComNetLog.e(
+                        TAG,
+                        "SCAN_FAILED_FEATURE_UNSUPPORTED"
+                    )
+
                     SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES -> ComNetLog.e(
                         TAG,
                         "SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES"
@@ -190,7 +197,10 @@ class BleGattClientRepositoryImpl @Inject constructor(
 
                     SCAN_FAILED_SCANNING_TOO_FREQUENTLY -> {
                         ComNetLog.e(TAG, "SCAN_FAILED_SCANNING_TOO_FREQUENTLY")
-                        ComNetLog.w(TAG, "Scan failed due to rate limiting - will retry after delay")
+                        ComNetLog.w(
+                            TAG,
+                            "Scan failed due to rate limiting - will retry after delay"
+                        )
                         connectionScope.launch {
                             delay(10000) // Wait 10 seconds before retrying
                             if (isActive) {
@@ -328,7 +338,10 @@ class BleGattClientRepositoryImpl @Inject constructor(
 
             override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
                 val deviceAddress = gatt.device.address
-                ComNetLog.i(TAG, "Client: MTU changed for $deviceAddress to $mtu with status $status")
+                ComNetLog.i(
+                    TAG,
+                    "Client: MTU changed for $deviceAddress to $mtu with status $status"
+                )
 
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     ComNetLog.i(
@@ -477,7 +490,10 @@ class BleGattClientRepositoryImpl @Inject constructor(
                 // keep the pending connection so we can avoid too many reconnections attempts, TODO: needs testing
                 bleConnectionTrackerRepository.removePendingConnection(deviceAddress)
             } else {
-                ComNetLog.d(TAG, "Client: GATT connection initiated successfully for $deviceAddress")
+                ComNetLog.d(
+                    TAG,
+                    "Client: GATT connection initiated successfully for $deviceAddress"
+                )
             }
         } catch (e: Exception) {
             ComNetLog.e(TAG, "Client: Exception connecting to $deviceAddress: ${e.message}")
