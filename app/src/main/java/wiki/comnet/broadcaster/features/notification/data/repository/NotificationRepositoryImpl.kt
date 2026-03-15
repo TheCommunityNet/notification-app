@@ -47,8 +47,11 @@ class NotificationRepositoryImpl @Inject constructor(
             val serviceChannel = NotificationChannel(
                 WEBSOCKET_CHANNEL_ID,
                 "WebSocket Service",
-                NotificationManager.IMPORTANCE_HIGH
-            )
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }
             val externalChannel = NotificationChannel(
                 EXTERNAL_CHANNEL_ID,
                 "Messages",
