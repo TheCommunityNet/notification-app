@@ -43,14 +43,16 @@ Community Net (ComNet) is an Android application designed for community broadcas
     - Wait for the project to sync with Gradle.
 
 3.  **Configuration:**
-    The application connects to specific backend services defined in `app/build.gradle.kts`.
+    The application connects to specific backend services wired through `BuildConfig` in `app/build.gradle.kts`.
 
     Default configuration:
     - **WebSocket URL**: `wss://websocket.comnet.wiki/socket/websocket`
     - **Keycloak Endpoint**: `https://keycloak.comnet.wiki`
     - **Realm**: `internal_realm`
 
-    If you need to change these for local development, modify the `buildConfigField` entries in `app/build.gradle.kts`.
+    For local development, point these at your own backends by editing the `buildConfigField` lines for `SOCKET_URL`, `KEYCLOAK_ENDPOINT`, and `KEYCLOAK_REALM` in `defaultConfig` (and in the `release` block if you build a release variant with different endpoints).
+
+    **Contributors:** Keep local-only URL changes out of pull requests. Restore the default `buildConfigField` values—or use a local Gradle setup that does not touch tracked files—before you open a PR so the shared defaults stay consistent for everyone.
 
 4.  **Run the App:**
     - Connect an Android device or start an emulator.
