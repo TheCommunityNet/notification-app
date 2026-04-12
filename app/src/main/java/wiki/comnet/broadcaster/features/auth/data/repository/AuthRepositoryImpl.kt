@@ -68,9 +68,13 @@ class AuthRepositoryImpl @Inject constructor(
                     profile = profile
                 )
             )
+            sharePreferenceRepository.setAuthProfile(profile)
             ComNetLog.d(TAG, "Auth state loaded successfully")
+        } catch (e: HttpException) {
+            ComNetLog.d(TAG, "Access token rejected (${e.code()}), attempting refresh", e)
+            tryRefreshOnLoad(oldAuthToken.refreshToken)
         } catch (e: Exception) {
-            ComNetLog.d(TAG, "Access token invalid, attempting refresh", e)
+            ComNetLog.d(TAG, "getUserInfo failed with network error, attempting refresh", e)
             tryRefreshOnLoad(oldAuthToken.refreshToken)
         }
     }
@@ -100,11 +104,21 @@ class AuthRepositoryImpl @Inject constructor(
                 AuthState(token = newAuthToken, profile = profile)
             )
             sharePreferenceRepository.setAuthToken(newAuthToken)
+            sharePreferenceRepository.setAuthProfile(profile)
             ComNetLog.d(TAG, "Auth state loaded after token refresh")
+        } catch (e: HttpException) {
+            if (e.code() == 401 || e.code() == 400) {
+                _authState.value = Result.Initial
+                sharePreferenceRepository.clearAuthToken()
+                sharePreferenceRepository.clearAuthProfile()
+                ComNetLog.e(TAG, "Failed to refresh token on load - auth rejected (${e.code()})", e)
+            } else {
+                restoreCachedAuthState()
+                ComNetLog.e(TAG, "Failed to refresh token on load - transient error (${e.code()}), restoring cached state", e)
+            }
         } catch (e: Exception) {
-            _authState.value = Result.Initial
-            sharePreferenceRepository.clearAuthToken()
-            ComNetLog.e(TAG, "Failed to refresh token on load", e)
+            restoreCachedAuthState()
+            ComNetLog.e(TAG, "Failed to refresh token on load - network error, restoring cached state", e)
         }
     }
 
@@ -184,7 +198,9 @@ class AuthRepositoryImpl @Inject constructor(
             ComNetLog.d(TAG, "Token refreshed successfully")
         } catch (e: HttpException) {
             ComNetLog.e(TAG, "Token refresh failed with HTTP ${e.code()}", e)
-            logout()
+            if (e.code() == 401 || e.code() == 400) {
+                logout()
+            }
         } catch (e: Exception) {
             ComNetLog.e(TAG, "Token refresh failed (transient)", e)
         }
@@ -245,12 +261,23 @@ class AuthRepositoryImpl @Inject constructor(
             }
         }
         sharePreferenceRepository.clearAuthToken()
+        sharePreferenceRepository.clearAuthProfile()
         _authState.value = Result.Initial
         ComNetLog.d(TAG, "User logged out")
     }
 
     override fun dispose() {
         _authService.dispose()
+    }
+
+    private fun restoreCachedAuthState() {
+        val cachedToken = sharePreferenceRepository.getAuthToken()
+        val cachedProfile = sharePreferenceRepository.getAuthProfile()
+        if (cachedToken != null && cachedProfile != null) {
+            _authState.value = Result.Success(AuthState(token = cachedToken, profile = cachedProfile))
+        } else {
+            _authState.value = Result.Initial
+        }
     }
 
     private suspend fun exchangeCodeForToken(response: AuthorizationResponse) {
@@ -289,6 +316,7 @@ class AuthRepositoryImpl @Inject constructor(
                 AuthState(token = authToken, profile = profile)
             )
             sharePreferenceRepository.setAuthToken(authToken)
+            sharePreferenceRepository.setAuthProfile(profile)
             ComNetLog.d(TAG, "Token exchange completed successfully")
         } catch (e: Exception) {
             _authState.value = Result.Error(e)

@@ -16,6 +16,6 @@ object AuthConfig {
     const val TOKEN_ENDPOINT =
         "$KEYCLOAK_ENDPOINT/realms/$KEYCLOAK_REALM/protocol/openid-connect/token"
 
-    const val TOKEN_REFRESH_THRESHOLD_MS = 120_000L // 2 minutes
+    const val TOKEN_REFRESH_THRESHOLD_MS = 172_800_000L // 2 days
     const val TOKEN_REFRESH_INTERVAL_MS = 90_000L // 90 seconds
 }
