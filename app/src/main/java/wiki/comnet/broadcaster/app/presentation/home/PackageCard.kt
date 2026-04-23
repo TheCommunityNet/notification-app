@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,6 +57,7 @@ import java.util.Locale.getDefault
 fun PackageCard(
     modifier: Modifier = Modifier,
     activeVoucherState: Result<Voucher?>,
+    refreshActiveVoucher: () -> Unit = {},
     redeemVoucherState: Result<Unit>,
     redeemVoucher: (String) -> Unit,
     onActiveVoucherExpired: () -> Unit = {},
@@ -66,7 +68,7 @@ fun PackageCard(
         ConstraintLayout(
             modifier = Modifier.fillMaxSize()
         ) {
-            val (_, planHeader, plan, remaining, input, activateButton) = createRefs()
+            val (_, planHeader, plan, remaining, input, activateButton, activePlanError, activeRetryButton) = createRefs()
 
             Text(
                 text = stringResource(R.string.package_title),
@@ -91,6 +93,10 @@ fun PackageCard(
                         activeVoucherState.data?.name ?: stringResource(R.string.empty_package)
                     }
 
+                    is Result.Error -> {
+                        stringResource(R.string.active_voucher_error)
+                    }
+
                     else -> {
                         stringResource(R.string.empty_package)
                     }
@@ -100,8 +106,12 @@ fun PackageCard(
                     start.linkTo(planHeader.start)
                 },
                 style = TextStyle(
-                    color = Color(0XFFFFFFFF),
+                    color = when (activeVoucherState is Result.Error) {
+                        true -> Color(0xFFE53935)
+                        else -> Color(0XFFFFFFFF)
+                    },
                     fontSize = 20.sp,
+                    lineHeight = 28.sp,
                     letterSpacing = 1.25.sp,
                 ),
             )
@@ -122,10 +132,12 @@ fun PackageCard(
                             bottom.linkTo(activateButton.top, 6.dp)
                             start.linkTo(parent.start)
                         }
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .height(62.dp),
                     placeholder = {
                         ThemeText(
-                            "*******", color = Color.White.copy(
+                            stringResource(R.string.voucher_input_placeholder),
+                            color = Color.White.copy(
                                 alpha = 0.75F,
                             )
                         )
@@ -164,9 +176,46 @@ fun PackageCard(
                         bottom.linkTo(parent.bottom, margin = (-2).dp)
                         end.linkTo(parent.end, margin = (-12).dp)
                     },
-                    loading = !redeemVoucherState.isLoading
+                    loading = redeemVoucherState.isLoading
                 ) {
                     redeemVoucher(code)
+                }
+            }
+
+
+            if (activeVoucherState is Result.Error) {
+                ThemeText(
+                    modifier = Modifier.constrainAs(activePlanError) {
+                        top.linkTo(plan.bottom, margin = 2.dp)
+                        start.linkTo(plan.start)
+                    }.fillMaxWidth(),
+                    text = activeVoucherState.exception.message ?: "Unknown Error",
+                    maxLines = 3,
+                    color = Color(0xFFE53935),
+                    fontSize = 12.sp,
+                    lineHeight = 20.sp,
+                )
+
+                TextButton(
+                    modifier = Modifier.constrainAs(activeRetryButton) {
+                        bottom.linkTo(parent.bottom, margin = (-14).dp)
+                        start.linkTo(parent.start, margin = 12.dp)
+                        end.linkTo(parent.end, margin = 12.dp)
+                    }.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors().copy(
+                        contentColor = Color(0XFFFFFFFF),
+                        disabledContentColor = Color.White.copy(
+                            alpha = 0.65F,
+                        )
+                    ),
+                    onClick = refreshActiveVoucher,
+                ) {
+                    ThemeText(
+                        text = stringResource(R.string.active_voucher_retry_button_label),
+                        style = TextStyle(
+                            letterSpacing = 1.25.sp,
+                        )
+                    )
                 }
             }
 
@@ -265,7 +314,7 @@ fun ActivateButton(
                 alpha = 0.65F,
             )
         ),
-        enabled = loading,
+        enabled = !loading,
         onClick = onClick,
     ) {
         Row(

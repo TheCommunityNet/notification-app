@@ -139,9 +139,10 @@ fun HomeScreen(
                     horizontal = 16.dp,
                 ),
                 activeVoucherState = activeVoucherState,
+                refreshActiveVoucher = homeViewModel::activeVoucher,
                 redeemVoucherState = redeemVoucherState,
-                redeemVoucher = { code -> homeViewModel.redeemVoucher(code) },
-                onActiveVoucherExpired = { homeViewModel.activeVoucher() },
+                redeemVoucher = homeViewModel::redeemVoucher,
+                onActiveVoucherExpired = homeViewModel::activeVoucher,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
