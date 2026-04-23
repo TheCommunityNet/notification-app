@@ -18,6 +18,11 @@ import org.phoenixframework.Channel
 import org.phoenixframework.Message
 import org.phoenixframework.Socket
 import wiki.comnet.broadcaster.core.domain.repository.DeviceIdRepository
+import wiki.comnet.broadcaster.core.utils.getAndroidVersion
+import wiki.comnet.broadcaster.core.utils.getDeviceManufacturer
+import wiki.comnet.broadcaster.core.utils.getDeviceModel
+import wiki.comnet.broadcaster.core.utils.getOsType
+import wiki.comnet.broadcaster.core.utils.getOsVersion
 import wiki.comnet.broadcaster.core.utils.getVersionName
 import wiki.comnet.broadcaster.features.logging.ComNetLog
 import wiki.comnet.broadcaster.features.websocket.constant.WebsocketConfig
@@ -66,6 +71,11 @@ class WebSocketRepositoryImpl @Inject constructor(
             mapOf(
                 "device_id" to deviceIdRepository.getDeviceId(),
                 "version" to versionName,
+                "device_brand" to getDeviceManufacturer(),
+                "device_model" to getDeviceModel(),
+                "os_type" to getOsType(),
+                "os_version" to getOsVersion(),
+                "android_version" to getAndroidVersion(),
             )
         ).apply {
             reconnectAfterMs = { tries ->
